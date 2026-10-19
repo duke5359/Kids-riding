@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>학원 라이딩 매니저</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="학원라이딩">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --child1-color: #2563eb;
+      --child1-bg: #eff6ff;
+      --child2-color: #ea580c;
+      --child2-bg: #fff7ed;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text-main); padding-bottom: 90px; }
+
+    header {
+      background: #ffffff;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-top { display: flex; justify-content: space-between; align-items: center; }
+    .header-top h1 { font-size: 20px; font-weight: 800; color: #1e293b; }
+    .today-badge { font-size: 13px; font-weight: 600; color: #475569; background: #f1f5f9; padding: 4px 10px; border-radius: 20px; }
+
+    .nav-tabs { display: flex; margin-top: 14px; gap: 8px; }
+    .nav-tab {
+      flex: 1; padding: 8px 0; text-align: center; font-size: 14px; font-weight: 700;
+      border-radius: 8px; border: 1px solid var(--border); background: #ffffff; color: var(--text-muted); cursor: pointer;
+    }
+    .nav-tab.active { background: #0f172a; color: #ffffff; border-color: #0f172a; }
+
+    .content-area { padding: 16px 20px; }
+
+    .section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+    .card { background: var(--card-bg); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+    
+    .card-child1 { border-left: 5px solid var(--child1-color); }
+    .card-child2 { border-left: 5px solid var(--child2-color); }
+
+    .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .child-tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+    .child-tag.child1 { background: var(--child1-bg); color: var(--child1-color); }
+    .child-tag.child2 { background: var(--child2-bg); color: var(--child2-color); }
+    
+    .time-badge { font-size: 14px; font-weight: 800; color: #0f172a; }
+    .academy-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .location-info { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+
+    .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 10px; }
+    .btn-cal { background: #f8fafc; border: 1px solid #cbd5e1; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 6px; color: #0f172a; cursor: pointer; }
+    .btn-del { background: transparent; border: none; font-size: 12px; color: #ef4444; padding: 5px; cursor: pointer; }
+
+    .day-selector { display: flex; justify-content: space-between; margin-bottom: 16px; background: #ffffff; padding: 8px; border-radius: 12px; border: 1px solid var(--border); }
+    .day-btn { flex: 1; border: none; background: transparent; font-size: 14px; font-weight: 700; color: var(--text-muted); padding: 8px 0; border-radius: 8px; cursor: pointer; }
+    .day-btn.active { background: #e2e8f0; color: #0f172a; }
+
+    .fab {
+      position: fixed; bottom: 20px; right: 20px; background: #0f172a; color: #ffffff;
+      width: 56px; height: 56px; border-radius: 28px; display: flex; justify-content: center; align-items: center;
+      font-size: 26px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.18); cursor: pointer; z-index: 100;
+    }
+
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; justify-content: center; align-items: flex-end; }
+    .modal-sheet { background: #ffffff; width: 100%; border-radius: 20px 20px 0 0; padding: 22px 20px 32px; max-height: 90vh; overflow-y: auto; }
+    .modal-title { font-size: 17px; font-weight: 800; margin-bottom: 16px; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 700; color: #475569; margin-bottom: 6px; }
+    .form-control { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
+    .child-radio-group { display: flex; gap: 10px; }
+    .child-radio-label { flex: 1; text-align: center; padding: 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; font-weight: 700; cursor: pointer; }
+    input[type="radio"]:checked + .radio-c1 { background: var(--child1-bg); border-color: var(--child1-color); color: var(--child1-color); }
+    input[type="radio"]:checked + .radio-c2 { background: var(--child2-bg); border-color: var(--child2-color); color: var(--child2-color); }
+    input[type="radio"] { display: none; }
+
+    .btn-submit { width: 100%; background: #0f172a; color: #ffffff; border: none; padding: 13px; font-size: 15px; font-weight: 700; border-radius: 10px; margin-top: 10px; cursor: pointer; }
+    .btn-close { width: 100%; background: transparent; border: none; color: var(--text-muted); font-size: 14px; padding: 10px; margin-top: 4px; cursor: pointer; }
+
+    .empty-state { text-align: center; padding: 40px 10px; color: var(--text-muted); font-size: 14px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-top">
+      <h1>학원 라이딩 매니저</h1>
+      <span class="today-badge" id="todayText">오늘</span>
+    </div>
+    <div class="nav-tabs">
+      <div class="nav-tab active" onclick="switchView('today')">오늘의 라이딩</div>
+      <div class="nav-tab" onclick="switchView('week')">주간 시간표</div>
+    </div>
+  </header>
+
+  <div class="content-area">
+    <div id="viewToday">
+      <div class="section-title">
+        <span>오늘 챙길 일정</span>
+        <span id="todayCount" style="font-size: 13px; color: var(--text-muted);">0건</span>
+      </div>
+      <div id="todayList"></div>
+    </div>
+
+    <div id="viewWeek" style="display: none;">
+      <div class="day-selector">
+        <button class="day-btn" onclick="selectDay(1)">월</button>
+        <button class="day-btn" onclick="selectDay(2)">화</button>
+        <button class="day-btn" onclick="selectDay(3)">수</button>
+        <button class="day-btn" onclick="selectDay(4)">목</button>
+        <button class="day-btn" onclick="selectDay(5)">금</button>
+        <button class="day-btn" onclick="selectDay(6)">토</button>
+        <button class="day-btn" onclick="selectDay(0)">일</button>
+      </div>
+      <div id="weekList"></div>
+    </div>
+  </div>
+
+  <button class="fab" onclick="openModal()">+</button>
+
+  <div class="modal" id="scheduleModal">
+    <div class="modal-sheet">
+      <div class="modal-title">학원 라이딩 일정 추가</div>
+      
+      <div class="form-group">
+        <label>대상 아이</label>
+        <div class="child-radio-group">
+          <label style="flex:1;">
+            <input type="radio" name="child" value="첫째" checked>
+            <div class="child-radio-label radio-c1">첫째</div>
+          </label>
+          <label style="flex:1;">
+            <input type="radio" name="child" value="둘째">
+            <div class="child-radio-label radio-c2">둘째</div>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>요일</label>
+        <select id="inputDay" class="form-control">
+          <option value="1">월요일</option>
+          <option value="2">화요일</option>
+          <option value="3">수요일</option>
+          <option value="4">목요일</option>
+          <option value="5">금요일</option>
+          <option value="6">토요일</option>
+          <option value="0">일요일</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>학원명 / 과목</label>
+        <input type="text" id="inputTitle" class="form-control" placeholder="예: 영어학원, 수학학원">
+      </div>
+
+      <div class="form-group" style="display:flex; gap:10px;">
+        <div style="flex:1;">
+          <label>출발/도착 시간</label>
+          <input type="time" id="inputTime" class="form-control" value="16:00">
+        </div>
+        <div style="flex:1;">
+          <label>구분</label>
+          <select id="inputType" class="form-control">
+            <option value="등원">등원 라이딩</option>
+            <option value="하원">하원 (픽업)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>탑승/픽업 위치 & 메모</label>
+        <input type="text" id="inputLoc" class="form-control" placeholder="예: 학원 앞 횡단보도, 셔틀 정류장">
+      </div>
+
+      <button class="btn-submit" onclick="saveSchedule()">일정 저장하기</button>
+      <button class="btn-close" onclick="closeModal()">취소</button>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'kids_academy_schedules_v2';
+    let schedules = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let currentDaySelected = new Date().getDay();
+
+    const daysKor = ['일', '월', '화', '수', '목', '금', '토'];
+
+    function init() {
+      const now = new Date();
+      document.getElementById('todayText').innerText = `${now.getMonth() + 1}월 ${now.getDate()}일 (${daysKor[now.getDay()]})`;
+      selectDay(currentDaySelected);
+      renderToday();
+    }
+
+    function switchView(view) {
+      document.querySelectorAll('.nav-tab').forEach((t, idx) => {
+        t.classList.toggle('active', (view === 'today' && idx === 0) || (view === 'week' && idx === 1));
+      });
+      document.getElementById('viewToday').style.display = view === 'today' ? 'block' : 'none';
+      document.getElementById('viewWeek').style.display = view === 'week' ? 'block' : 'none';
+      if (view === 'today') renderToday();
+      else renderWeek();
+    }
+
+    function selectDay(day) {
+      currentDaySelected = day;
+      document.querySelectorAll('.day-btn').forEach((btn) => {
+        btn.classList.toggle('active', btn.innerText === daysKor[day]);
+      });
+      renderWeek();
+    }
+
+    function openModal() {
+      document.getElementById('inputDay').value = currentDaySelected;
+      document.getElementById('scheduleModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('scheduleModal').style.display = 'none';
+      document.getElementById('inputTitle').value = '';
+      document.getElementById('inputLoc').value = '';
+    }
+
+    function saveSchedule() {
+      const child = document.querySelector('input[name="child"]:checked').value;
+      const day = parseInt(document.getElementById('inputDay').value);
+      const title = document.getElementById('inputTitle').value.trim();
+      const time = document.getElementById('inputTime').value;
+      const type = document.getElementById('inputType').value;
+      const loc = document.getElementById('inputLoc').value.trim();
+
+      if (!title) {
+        alert('학원명을 입력해 주세요.');
+        return;
+      }
+
+      schedules.push({
+        id: Date.now(),
+        child,
+        day,
+        title,
+        time,
+        type,
+        loc
+      });
+
+      schedules.sort((a, b) => a.time.localeCompare(b.time));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(schedules));
+
+      closeModal();
+      renderToday();
+      renderWeek();
+    }
+
+    function deleteSchedule(id) {
+      if (confirm('이 라이딩 일정을 삭제하시겠습니까?')) {
+        schedules = schedules.filter(s => s.id !== id);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(schedules));
+        renderToday();
+        renderWeek();
+      }
+    }
+
+    function renderToday() {
+      const today = new Date().getDay();
+      const listEl = document.getElementById('todayList');
+      const todayItems = schedules.filter(s => s.day === today);
+
+      document.getElementById('todayCount').innerText = `${todayItems.length}건`;
+
+      if (todayItems.length === 0) {
+        listEl.innerHTML = '<div class="empty-state">오늘 예정된 학원 라이딩 일정이 없습니다.</div>';
+        return;
+      }
+
+      listEl.innerHTML = todayItems.map(item => makeCardHtml(item)).join('');
+    }
+
+    function renderWeek() {
+      const listEl = document.getElementById('weekList');
+      const dayItems = schedules.filter(s => s.day === currentDaySelected);
+
+      if (dayItems.length === 0) {
+        listEl.innerHTML = `<div class="empty-state">${daysKor[currentDaySelected]}요일 등록된 일정이 없습니다.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = dayItems.map(item => makeCardHtml(item)).join('');
+    }
+
+    function makeCardHtml(item) {
+      const isChild1 = item.child === '첫째';
+      const childClass = isChild1 ? 'child1' : 'child2';
+      const borderClass = isChild1 ? 'card-child1' : 'card-child2';
+
+      return `
+        <div class="card ${borderClass}">
+          <div class="card-head">
+            <span class="child-tag ${childClass}">${item.child}</span>
+            <span class="time-badge">${item.time} [${item.type}]</span>
+          </div>
+          <div class="academy-name">${item.title}</div>
+          <div class="location-info">📍 ${item.loc || '위치 미지정'}</div>
+          <div class="card-footer">
+            <button class="btn-cal" onclick='exportIcs(${JSON.stringify(item)})'>🔔 폰 알림 등록 (1시간/30분/5분 전)</button>
+            <button class="btn-del" onclick="deleteSchedule(${item.id})">삭제</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // 1시간 전, 30분 전, 5분 전 3중 알림이 포함된 .ics 생성
+    function exportIcs(item) {
+      const now = new Date();
+      const currentDay = now.getDay();
+      let diffDays = item.day - currentDay;
+      if (diffDays < 0) diffDays += 7;
+
+      const targetDate = new Date();
+      targetDate.setDate(now.getDate() + diffDays);
+
+      const [hours, mins] = item.time.split(':');
+      targetDate.setHours(parseInt(hours, 10), parseInt(mins, 10), 0, 0);
+
+      const formatIcsTime = (d) => {
+        return d.toISOString().replace(/-|:|\.\d+/g, '');
+      };
+
+      const startTime = formatIcsTime(targetDate);
+      const endTime = formatIcsTime(new Date(targetDate.getTime() + 30 * 60 * 1000));
+
+      const icsData = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Kids Academy Riding Manager//KO',
+        'BEGIN:VEVENT',
+        `SUMMARY:[${item.child} 라이딩] ${item.title} (${item.type})`,
+        `DESCRIPTION:위치 및 메모: ${item.loc || '없음'}`,
+        `LOCATION:${item.loc || ''}`,
+        `DTSTART:${startTime}`,
+        `DTEND:${endTime}`,
+        'RRULE:FREQ=WEEKLY;INTERVAL=1', // 매주 반복
+        // 1) 1시간 전 알림 (-PT1H)
+        'BEGIN:VALARM',
+        'TRIGGER:-PT1H',
+        'ACTION:DISPLAY',
+        `DESCRIPTION:[1시간 전] ${item.child} ${item.title} 라이딩 준비`,
+        'END:VALARM',
+        // 2) 30분 전 알림 (-PT30M)
+        'BEGIN:VALARM',
+        'TRIGGER:-PT30M',
+        'ACTION:DISPLAY',
+        `DESCRIPTION:[30분 전] ${item.child} ${item.title} 출발 준비`,
+        'END:VALARM',
+        // 3) 5분 전 알림 (-PT5M)
+        'BEGIN:VALARM',
+        'TRIGGER:-PT5M',
+        'ACTION:DISPLAY',
+        `DESCRIPTION:[5분 전] ${item.child} ${item.title} 지금 이동하세요!`,
+        'END:VALARM',
+        'END:VEVENT',
+        'END:VCALENDAR'
+      ].join('\r\n');
+
+      const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.setAttribute('download', `${item.child}_${item.title}_라이딩알림.ics`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
